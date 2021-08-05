@@ -6,7 +6,9 @@ from pathlib import Path
 
 import numpy as np
 
-from .exceptions import StructureParserException
+from fccc.exceptions import StructureParserException
+from fccc.utils import open_file
+
 
 __all__ = ["parse_pdb"]
 
@@ -84,7 +86,7 @@ def parse_pdb(filepath, hetatm=False):
 
     atoms = []
     coordinates = []
-    with fp.open("rt") as handle:
+    with open_file(fp) as handle:
         for ln, line in enumerate(handle, start=1):
             if line.startswith(rectypes):
                 name = line[12:16]
@@ -105,8 +107,4 @@ def parse_pdb(filepath, hetatm=False):
                     atoms.append(atom)
                     coordinates.append((x, y, z))
 
-    return Structure(
-        filepath,
-        atoms,
-        np.asarray(coordinates, dtype=np.float64)
-    )
+    return Structure(filepath, atoms, np.asarray(coordinates, dtype=np.float64))

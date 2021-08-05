@@ -13,4 +13,4 @@ def test_performance_parse_pdb_1K8K(input_dir, benchmark):
     # 1K8K is a large structure (heptamer)
     benchmark(parse_pdb, (input_dir / "1K8K.pdb"))
     if benchmark.stats.stats.mean > 0.10:
-        pytest.fail('Exceeding expected average time of 6ms')
+        pytest.fail("Exceeding expected average time of 6ms")

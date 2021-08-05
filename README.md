@@ -13,7 +13,7 @@ Advantages over traditional RMSD-based clustering methods include:
 Citation
 ========
 
-Rodrigues JPGLM, Trellet M, Schmitz C, Kastritis P, Karaca E, Melquiond ASJ, Bonvin AMJJ. 
+Rodrigues JPGLM, Trellet M, Schmitz C, Kastritis P, Karaca E, Melquiond ASJ, Bonvin AMJJ.
 [Clustering biomolecular complexes by residue contacts similarity.] [1]
 Proteins: Structure, Function, and Bioinformatics 2012;80(7):1810–1817.
 

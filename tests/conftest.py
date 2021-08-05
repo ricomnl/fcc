@@ -19,14 +19,13 @@ def pytest_addoption(parser):
         "--run-performance",
         action="store_true",
         default=False,
-        help="run performance tests"
+        help="run performance tests",
     )
 
 
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers",
-        "performance: mark test as performance (slow to run)"
+        "markers", "performance: mark test as performance (slow to run)"
     )
 
 

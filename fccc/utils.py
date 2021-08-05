@@ -1,22 +1,13 @@
 """Assorted utility functions."""
 
-from pathlib import Path
+import gzip
 
 
-def write_contacts(atom_pair_list, filepath):
-    """Write pairs of atoms to a file, one pair per line.
+def open_file(filepath):
+    """Return a file-handle from a given file path.
 
-    atom_pair_list is an iterable of (Atom, Atom) objects.
+    Infers if file is compressed or not based on extension.
     """
-
-    if isinstance(filepath, str):
-        filepath = Path(filepath)
-    elif isinstance(filepath, Path):
-        pass
-    else:
-        raise IOError("'filepath' must be of type str or pathlib.Path")
-
-    # out_fn = f"{structure.filepath.stem}_contacts_{chain_i}_{chain_j}.txt"
-    out_str = [f"{atom_i}\t{atom_j}" for atom_i, atom_j in atom_pair_list]
-    with filepath.open("wt") as handle:
-        handle.write("\n".join(out_str))
+    if filepath.suffix == ".gz":
+        return gzip.open(filepath, "rt")
+    return filepath.open("rt")

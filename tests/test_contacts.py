@@ -1,4 +1,4 @@
-"""Code to test contact calculations."""
+"""Code to test contact module."""
 
 import numpy as np
 
@@ -6,18 +6,13 @@ from fccc import parse_pdb
 from fccc import get_intermolecular_contacts
 from fccc.structure import Atom
 from fccc.contacts import get_pairwise_contacts
+from fccc.utils import open_file
 
 
 def test_get_pairwise_contacts():
     """Test pairwise contact calculation on arrays."""
 
-    coords = np.array(
-        [
-            [0, 0, 0],
-            [0, 0, 1]
-        ],
-        dtype=np.float64
-    )
+    coords = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.float64)
 
     idx_i = np.array([0], dtype=np.int64)
     idx_j = np.array([1], dtype=np.int64)
@@ -31,18 +26,23 @@ def test_get_pairwise_contacts():
 def test_get_intermolecular_contacts(input_dir):
     """Test intermolecular contact calculation on 1k8k.pdb"""
 
-    s = parse_pdb(input_dir / "1k8k.pdb")
+    s = parse_pdb(input_dir / "1k8k.pdb.gz")
     contacts = list(get_intermolecular_contacts(s, 5.0))
 
     # Read independent data
-    fn = input_dir / "1k8k.contacts"
-    with fn.open("rt") as handle:
+    fn = input_dir / "1k8k.contacts.gz"
+    with open_file(fn) as handle:
         true_contacts = []
         for lineno, line in enumerate(handle):
             try:
                 (
-                    resid_i, chain_i, name_i,
-                    resid_j, chain_j, name_j, _,
+                    resid_i,
+                    chain_i,
+                    name_i,
+                    resid_j,
+                    chain_j,
+                    name_j,
+                    _,
                 ) = line.strip().split()
             except Exception:
                 if line.strip():
