@@ -17,4 +17,5 @@ setup(
     url="https://githuiub.com/joaorodrigues/fccc",
     license=license,
     py_modules=["fccc"],
+    python_requires=">=3.9"
 )
