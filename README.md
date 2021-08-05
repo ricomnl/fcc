@@ -1,3 +1,5 @@
+[![CI](https://github.com/JoaoRodrigues/fcc/actions/workflows/ci.yml/badge.svg?branch=fcc2)](https://github.com/JoaoRodrigues/fcc/actions/workflows/ci.yml)
+
 Contact-based clustering for protein structures
 ============================================
 
