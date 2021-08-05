@@ -1,3 +1,5 @@
+"""Setup script for FCCC."""
+
 from distutils.core import setup
 
 with open("README.md") as f:
@@ -17,5 +19,5 @@ setup(
     url="https://githuiub.com/joaorodrigues/fccc",
     license=license,
     py_modules=["fccc"],
-    python_requires=">=3.9"
+    python_requires=">=3.9",
 )

@@ -24,7 +24,7 @@ def test_get_pairwise_contacts():
 
 
 def test_get_intermolecular_contacts(input_dir):
-    """Test intermolecular contact calculation on 1k8k.pdb"""
+    """Test intermolecular contact calculation on 1k8k.pdb."""
 
     s = parse_pdb(input_dir / "1k8k.pdb.gz")
     contacts = list(get_intermolecular_contacts(s, 5.0))
@@ -44,7 +44,7 @@ def test_get_intermolecular_contacts(input_dir):
                     name_j,
                     _,
                 ) = line.strip().split()
-            except Exception:
+            except Exception:  # noqa: B902
                 if line.strip():
                     msg = f"Error parsing line {lineno} of file: {fn.name}"
                     raise IOError(msg)

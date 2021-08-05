@@ -43,7 +43,7 @@ class Structure:
 
 # Utility functions
 def is_hydrogen(atom_fullname):
-    """Returns True is the atom is a hydrogen."""
+    """Return True is the atom is a hydrogen."""
     # TODO: try regex
     name = atom_fullname.strip()
     if atom_fullname[0].isalpha() and not atom_fullname[2:].isdigit():

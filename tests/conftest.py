@@ -15,6 +15,7 @@ def input_dir():
 
 # Skip performance tests by default
 def pytest_addoption(parser):
+    """Add --run-performance cmd arg to pytest."""
     parser.addoption(
         "--run-performance",
         action="store_true",
@@ -24,12 +25,14 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    """Add mark for performance tests."""
     config.addinivalue_line(
         "markers", "performance: mark test as performance (slow to run)"
     )
 
 
 def pytest_collection_modifyitems(config, items):
+    """Skip performance tests by default."""
     if config.getoption("--run-performance"):
         # --run-performance given in cli: do not skip performance tests
         return

@@ -5,7 +5,7 @@ from fccc.structure import divide_by_chain
 
 
 def test_parse_pdb_1k8k(input_dir):
-    """Parse 1k8k.pdb"""
+    """Parse 1k8k.pdb."""
 
     expected_chains = ["A", "B", "C", "D", "E", "F", "G"]
     expected_atoms = [3214, 1517, 2647, 2293, 1416, 1371, 872]
@@ -21,7 +21,7 @@ def test_parse_pdb_1k8k(input_dir):
 
 
 def test_parse_pdb_1BRS(input_dir):
-    """Parse 1brs.pdb"""
+    """Parse 1brs.pdb."""
 
     expected_chains = ["A", "D"]
     expected_atoms = [864, 695]
@@ -53,7 +53,7 @@ def test_parse_pdb_1BRS_w_hetatm(input_dir):
 
 
 def test_divide_by_chain(input_dir):
-    """Test divide_by_chain()"""
+    """Test divide_by_chain()."""
 
     expected_chains = ["A", "B", "C", "D", "E", "F", "G"]
     expected_atoms = [3214, 1517, 2647, 2293, 1416, 1371, 872]

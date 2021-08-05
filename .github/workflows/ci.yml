@@ -55,7 +55,7 @@ jobs:
     - name: Run style checking using pre-commit
       run: |
         pre-commit run --files $( cat ${HOME}/files.txt )
-  
+
   run_test:
     runs-on: ${{ matrix.os }}
     strategy:
