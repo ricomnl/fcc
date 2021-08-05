@@ -1,0 +1,9 @@
+# Include project dependencies
+-r requirements.txt
+
+# Testing dependencies
+pytest
+pytest-benchmark
+
+# Style & General Development
+pre-commit
