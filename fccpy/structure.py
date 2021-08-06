@@ -22,7 +22,7 @@ class Atom:
     name: str
 
     def __str__(self):
-        return f"{self.chain:<2s} {self.resid:>5d}{self.icode:<1s} {self.name:<4s}"
+        return f"{self.chain:<2s} {self.resid:>5d} {self.icode:<1s} {self.name:<4s}"
 
 
 @dataclass(frozen=True)
