@@ -25,6 +25,6 @@ setup(
     ],
     packages=find_packages(),
     entry_points={
-        "console_scripts": ["fccpy=fccpy.cmdline:main"],
+        "console_scripts": ["fccpy=fccpy.cli:main"],
     },
 )
