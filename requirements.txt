@@ -1,2 +1,2 @@
-numba
-numpy
+# Refer to setup.py install_requires
+.

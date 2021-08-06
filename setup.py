@@ -1,6 +1,6 @@
 """Setup script for FCCC."""
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 with open("README.md") as f:
     readme = f.read()
@@ -16,8 +16,15 @@ setup(
     long_description=readme,
     author="Joao Rodrigues",
     author_email="j.p.g.l.m.rodrigues@gmail.com",
-    url="https://githuiub.com/joaorodrigues/fccpy",
+    url="https://github.com/joaorodrigues/fccpy",
     license=license,
-    py_modules=["fccpy"],
     python_requires=">=3.9",
+    install_requires=[
+        "numba",
+        "numpy",
+    ],
+    packages=find_packages(),
+    entry_points={
+        "console_scripts": ["fccpy=fccpy.cmdline:main"],
+    },
 )
