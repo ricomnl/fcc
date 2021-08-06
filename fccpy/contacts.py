@@ -1,6 +1,7 @@
 """Functions to calculate contacts."""
 
 from itertools import combinations
+from pathlib import Path
 
 from numba import jit
 import numpy as np
@@ -8,7 +9,7 @@ import numpy as np
 from fccpy.structure import divide_by_chain
 
 
-__all__ = ["get_intermolecular_contacts"]
+__all__ = ["get_intermolecular_contacts", "write_contact_file"]
 
 
 # Functions
@@ -64,21 +65,19 @@ def get_intermolecular_contacts(structure, max_dist=5.0):
             yield structure.atom(i), structure.atom(j)
 
 
-# from pathlib import Path
-# def write_contacts(atom_pair_list, filepath):
-#     """Write pairs of atoms to a file, one pair per line.
+def write_contact_file(atom_pair_list, filepath):
+    """Write pairs of atoms to a file, one pair per line.
 
-#     atom_pair_list is an iterable of (Atom, Atom) objects.
-#     """
+    atom_pair_list is an iterable of (Atom, Atom) objects.
+    """
 
-#     if isinstance(filepath, str):
-#         filepath = Path(filepath)
-#     elif isinstance(filepath, Path):
-#         pass
-#     else:
-#         raise IOError("'filepath' must be of type str or pathlib.Path")
+    if isinstance(filepath, str):
+        filepath = Path(filepath)
+    elif isinstance(filepath, Path):
+        pass
+    else:
+        raise IOError("'filepath' must be of type str or pathlib.Path")
 
-#     # out_fn = f"{structure.filepath.stem}_contacts_{chain_i}_{chain_j}.txt"
-#     out_str = [f"{atom_i}\t{atom_j}" for atom_i, atom_j in atom_pair_list]
-#     with filepath.open("wt") as handle:
-#         handle.write("\n".join(out_str))
+    out_str = [f"{atom_i}\t{atom_j}" for atom_i, atom_j in atom_pair_list]
+    with filepath.open("wt") as handle:
+        handle.write("\n".join(out_str))
