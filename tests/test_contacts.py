@@ -4,11 +4,11 @@ from pathlib import Path
 
 import numpy as np
 
-from fccc import parse_pdb
-from fccc import get_intermolecular_contacts
-from fccc.structure import Atom
-from fccc.contacts import get_pairwise_contacts
-from fccc.utils import open_file
+from fccpy import parse_pdb
+from fccpy import get_intermolecular_contacts
+from fccpy.structure import Atom
+from fccpy.contacts import get_pairwise_contacts
+from fccpy.utils import open_file
 
 
 def test_get_pairwise_contacts():

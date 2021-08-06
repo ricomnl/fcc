@@ -6,8 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
-from fccc.exceptions import StructureParserException
-from fccc.utils import open_file
+from fccpy.exceptions import StructureParserException
+from fccpy.utils import open_file
 
 
 __all__ = ["parse_pdb"]

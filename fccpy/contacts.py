@@ -5,7 +5,7 @@ from itertools import combinations
 from numba import jit
 import numpy as np
 
-from fccc.structure import divide_by_chain
+from fccpy.structure import divide_by_chain
 
 
 __all__ = ["get_intermolecular_contacts"]

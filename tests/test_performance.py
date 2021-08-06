@@ -7,7 +7,7 @@ import tempfile
 
 import pytest
 
-from fccc import parse_pdb
+from fccpy import parse_pdb
 
 pytestmark = [pytest.mark.performance]  # mark all tests as slow
 

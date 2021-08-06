@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from fccc import parse_pdb
-from fccc.structure import divide_by_chain
+from fccpy import parse_pdb
+from fccpy.structure import divide_by_chain
 
 
 def test_parse_pdb_1k8k(input_dir):
