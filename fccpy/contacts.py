@@ -71,13 +71,12 @@ def write_contact_file(atom_pair_list, filepath):
     atom_pair_list is an iterable of (Atom, Atom) objects.
     """
 
-    if isinstance(filepath, str):
+    try:
         filepath = Path(filepath)
-    elif isinstance(filepath, Path):
-        pass
-    else:
+    except TypeError:
         raise IOError("'filepath' must be of type str or pathlib.Path")
 
-    out_str = [f"{atom_i}\t{atom_j}" for atom_i, atom_j in atom_pair_list]
     with filepath.open("wt") as handle:
-        handle.write("\n".join(out_str))
+        handle.write(
+            "\n".join(f"{atom_i}\t{atom_j}" for atom_i, atom_j in atom_pair_list)
+        )

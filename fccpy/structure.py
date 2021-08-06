@@ -73,11 +73,9 @@ def parse_pdb(filepath, hetatm=False):
     Raises exception if the structure has multiple MODELs.
     """
 
-    if isinstance(filepath, str):
+    try:
         filepath = Path(filepath)
-    elif isinstance(filepath, Path):
-        pass
-    else:
+    except TypeError:
         raise IOError("'filepath' must be of type str or pathlib.Path")
 
     fp = filepath.resolve(strict=True)
