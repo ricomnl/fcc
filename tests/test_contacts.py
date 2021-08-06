@@ -1,5 +1,7 @@
 """Code to test contact module."""
 
+from pathlib import Path
+
 import numpy as np
 
 from fccc import parse_pdb
@@ -26,12 +28,13 @@ def test_get_pairwise_contacts():
 def test_get_intermolecular_contacts(input_dir):
     """Test intermolecular contact calculation on 1k8k.pdb."""
 
-    s = parse_pdb(input_dir / "1k8k.pdb.gz")
+    fp = Path(input_dir, "1k8k.pdb.gz")
+    s = parse_pdb(fp)
     contacts = list(get_intermolecular_contacts(s, 5.0))
 
     # Read independent data
-    fn = input_dir / "1k8k.contacts.gz"
-    with open_file(fn) as handle:
+    ref_fn = Path(input_dir, "1k8k.contacts.gz")
+    with open_file(ref_fn) as handle:
         true_contacts = []
         for lineno, line in enumerate(handle):
             try:
@@ -46,11 +49,11 @@ def test_get_intermolecular_contacts(input_dir):
                 ) = line.strip().split()
             except Exception:  # noqa: B902
                 if line.strip():
-                    msg = f"Error parsing line {lineno} of file: {fn.name}"
+                    msg = f"Error parsing line {lineno} of file: {ref_fn.name}"
                     raise IOError(msg)
             else:
-                atom_i = Atom(chain_i, int(resid_i), name_i)
-                atom_j = Atom(chain_j, int(resid_j), name_j)
+                atom_i = Atom(chain_i, int(resid_i), "", name_i)
+                atom_j = Atom(chain_j, int(resid_j), "", name_j)
                 true_contacts.append((atom_i, atom_j))
 
     # Compare to calculated contacts
@@ -62,4 +65,7 @@ def test_get_intermolecular_contacts(input_dir):
     for c, tc in zip(contacts, true_contacts):
         c_a, c_b = c
         tc_a, tc_b = tc
-        assert c_a == tc_a and c_b == tc_b
+        # This is annoying because of icodes
+        for prop in ["chain", "resid", "name"]:
+            assert getattr(c_a, prop) == getattr(tc_a, prop)
+            assert getattr(c_b, prop) == getattr(tc_b, prop)
