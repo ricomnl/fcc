@@ -75,8 +75,14 @@ def check_file(fn):
 def list_of_paths(filepath):
     """Parse a file containing one file path per line."""
     filepath = Path(filepath)
+    fp_list = []
     with filepath.open("rt") as handle:
-        return [check_file(fn.strip()) for fn in handle if fn.strip()]
+        for fn in handle:
+            # Paths are relative to the file where they are written,
+            # not relative to this script. So convert them accordingly.
+            fp = check_file(Path(filepath.parent, fn.strip()).resolve())
+            fp_list.append(fp)
+    return fp_list
 
 
 def get_parser(cmd_args):
@@ -133,6 +139,7 @@ def main(cmd_args):
     log("started")
     log(f"command: {' '.join(sys.argv)}")
 
+    _start_time = time.time()
     timings = []
     _worker = partial(calculate_contacts, dmax=args.max_dist)
     with multiprocessing.Pool(args.num_processes) as pool:
@@ -147,13 +154,15 @@ def main(cmd_args):
                 log(msg)
             else:
                 log(msg, end="\r")
+    _end_time = time.time()
 
-    cumtime = sum(timings)
-    avetime = cumtime / len(timings)
+    cumtime = _end_time - _start_time  # wall clock
+    avetime = sum(timings) / len(timings)
 
     log("finished!")
     log(f"  number of structures processed: {len(args.struct_list)}")
     log(f"  average processing time: {avetime:4.3f} s per structure")
+    log(f"  performance: {1/avetime:6.1f} structures per second")
     log(f"  total processing time: {cumtime:4.3f} s")
 
 
