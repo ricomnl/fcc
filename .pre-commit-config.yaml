@@ -19,9 +19,6 @@ repos:
     rev: 3.9.2
     hooks:
     -   id: flake8
-        args:
-        - --ignore=D202,D204
-        - --max-line-length=89
         additional_dependencies: [
             'flake8-blind-except',
             'flake8-bugbear',
