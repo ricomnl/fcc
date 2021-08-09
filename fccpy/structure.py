@@ -1,6 +1,6 @@
 """Objects and utility functions to store/manipulate coordinate data."""
 
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -10,20 +10,7 @@ __all__ = ["filter_by_chain"]
 
 
 # Objects to store atomic information
-@dataclass(frozen=True, order=True)
-class Atom:
-    chain: str
-    resid: int
-    icode: str
-    name: str
-
-    def __str__(self):
-        return f"Atom ({self.name})"
-
-    @property
-    def csv(self):
-        """Return the atom properties in csv format."""
-        return f"{self.chain},{self.resid},{self.icode},{self.name}"
+Atom = namedtuple("Atom", ["chain", "resid", "icode", "name"])
 
 
 @dataclass(frozen=True)
@@ -48,6 +35,11 @@ class Structure:
         for atom_idx, atom in enumerate(self.atoms):
             atoms_per_chain[atom.chain].append(atom_idx)
         return atoms_per_chain
+
+
+# Utility functions
+def atom_to_csv(self):
+    return f"{self.chain},{self.resid},{self.icode},{self.name}"
 
 
 # Filter functions
