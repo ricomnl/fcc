@@ -1,4 +1,4 @@
-"""Simple coordinate parsing code into objects."""
+"""Objects and utility functions to store/manipulate coordinate data."""
 
 from collections import defaultdict
 from dataclasses import dataclass
@@ -6,11 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from fccpy.exceptions import StructureParserException
-from fccpy.utils import open_file
-
-
-__all__ = ["parse_pdb"]
+__all__ = ["filter_by_chain"]
 
 
 # Objects to store atomic information
@@ -22,7 +18,12 @@ class Atom:
     name: str
 
     def __str__(self):
-        return f"{self.chain:<2s} {self.resid:>5d} {self.icode:<1s} {self.name:<4s}"
+        return f"Atom ({self.name})"
+
+    @property
+    def csv(self):
+        """Return the atom properties in csv format."""
+        return f"{self.chain},{self.resid},{self.icode},{self.name}"
 
 
 @dataclass(frozen=True)
@@ -41,79 +42,44 @@ class Structure:
         """Return a specific Atom."""
         return self.atoms[idx]
 
-
-# Utility functions
-def is_hydrogen(atom_fullname):
-    """Return True is the atom is a hydrogen."""
-    # TODO: try regex
-    name = atom_fullname.strip()
-    if atom_fullname[0].isalpha() and not atom_fullname[2:].isdigit():
-        putative_elem = name
-    elif name[0].isdigit():  # e.g. 1HE2
-        putative_elem = name[1]
-    else:
-        putative_elem = name[0]
-    return putative_elem == "H"
+    def atoms_by_chain(self):
+        """Return a dictionary of atom indices grouped by chain id."""
+        atoms_per_chain = defaultdict(list)
+        for atom_idx, atom in enumerate(self.atoms):
+            atoms_per_chain[atom.chain].append(atom_idx)
+        return atoms_per_chain
 
 
-def divide_by_chain(structure):
-    """Return a dictionary of atom indices grouped by chain id."""
-    atoms_per_chain = defaultdict(list)
-    for atom_idx, atom in enumerate(structure):
-        atoms_per_chain[atom.chain].append(atom_idx)
-    return atoms_per_chain
+# Filter functions
+def filter_by_chain(structure, chain_ids):
+    """Return a Structure containing only atoms belonging to specific chains.
 
+    Parameters
+    ----------
+    structure : fccpy.Structure
+        Structure object to filter.
+    chain_ids : list[str]
+        List of chain identifiers.
 
-# IO functions
-def parse_pdb(filepath, hetatm=False):
-    """Read a PDB file into a Structure dataclass.
+    Returns
+    -------
+    fccpy.Structure
 
-    If hetatm is False (default), ignores HETATM records.
-
-    Raises exception if the structure has multiple MODELs.
+    Raises
+    ------
+    ValueError
+        If chain_ids is empty or if no atoms match the requested chains.
     """
+    if not chain_ids:
+        raise ValueError("Argument `chain_ids` must not be empty.")
 
-    try:
-        filepath = Path(filepath)
-    except TypeError:
-        raise IOError("'filepath' must be of type str or pathlib.Path")
+    include_set = set(chain_ids)
+    sele = ((i, a) for i, a in enumerate(structure) if a.chain in include_set)
+    sele_idx, sele_atoms = zip(*sele)
 
-    fp = filepath.resolve(strict=True)
+    if not sele_idx:
+        raise ValueError("Selection returned zero atoms.")
 
-    if hetatm:
-        rectypes = ("ATOM  ", "HETATM")
-    else:
-        rectypes = ("ATOM  ",)
-
-    atoms = []
-    coordinates = []
-    with open_file(fp) as handle:
-        for ln, line in enumerate(handle, start=1):
-            if line.startswith(rectypes):
-                name = line[12:16]
-                element = line[76:78].strip()
-                if element == "H":
-                    continue
-                elif not element and is_hydrogen(name):
-                    continue
-
-                try:
-                    chain_id = line[21]
-                    resid_num = int(line[22:26])
-                    icode = line[26]
-                    x = float(line[30:38])
-                    y = float(line[38:46])
-                    z = float(line[46:54])
-                except ValueError:
-                    msg = f"Error parsing file '{filepath.name}' on line {ln}"
-                    raise StructureParserException(msg) from None
-                else:
-                    atom = Atom(chain_id, resid_num, icode, name.strip())
-                    atoms.append(atom)
-                    coordinates.append((x, y, z))
-
-            elif line.startswith(("MODEL ", "ENDMDL")):
-                msg = "Multi-model structures are not supported."
-                raise StructureParserException(msg)
-
-    return Structure(filepath, atoms, np.asarray(coordinates, dtype=np.float64))
+    return Structure(
+        filepath=structure.filepath, atoms=sele_atoms, xyz=structure.xyz[sele_idx]
+    )

@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from fccpy import parse_pdb
-from fccpy.structure import divide_by_chain
 
 
 def test_parse_pdb_1k8k(input_dir):
@@ -57,15 +56,15 @@ def test_parse_pdb_1BRS_w_hetatm(input_dir):
         assert chain_atoms == n_atoms
 
 
-def test_divide_by_chain(input_dir):
-    """Test divide_by_chain()."""
+def test_atoms_by_chain(input_dir):
+    """Test Structure.atoms_by_chain()."""
 
     expected_chains = ["A", "B", "C", "D", "E", "F", "G"]
     expected_atoms = [3214, 1517, 2647, 2293, 1416, 1371, 872]
 
     fp = Path(input_dir, "1k8k.pdb.gz")
     structure = parse_pdb(fp)
-    chains = divide_by_chain(structure)
+    chains = structure.atoms_by_chain()
     assert len(chains) == 7
     assert list(chains) == expected_chains
 

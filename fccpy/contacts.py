@@ -1,4 +1,4 @@
-"""Functions to calculate contacts."""
+"""Functions to calculate and compare contacts."""
 
 from itertools import combinations
 from pathlib import Path
@@ -6,35 +6,54 @@ from pathlib import Path
 from numba import jit
 import numpy as np
 
-from fccpy.structure import divide_by_chain
-
 
 __all__ = ["get_intermolecular_contacts", "write_contact_file"]
 
 
-# Functions
+# Functions to calculate contacts
 @jit(
     "UniTuple(int64[:], 2)(f8[:, :], i8[:], i8[:], f8)",
     nopython=True,
     nogil=True,
     fastmath=True,
 )
-def get_pairwise_contacts(coordinates_array, idx_a, idx_b, max_dist):
-    """Return indices of array element pairs within max_dist."""
+def get_pairwise_contacts(coordinates, idx_a, idx_b, dmax):
+    """Identify pairs of atoms in `coordinates` are within `dmax` distance.
+
+    Distances are calculated in Euclidean space (3D).
+
+    Parameters
+    ----------
+    coordinates : numpy.ndarray
+        2D array of shape (N, 3) with positions (`float`) for N atoms.
+    idx_a, idx_b : numpy.ndarray
+        1D array of `int` with indices corresponding to rows in `coordinates`.
+        Contacts will be calculated only between coordinates of atoms in
+        `idx_a` vs those in `idx_b`.
+    dmax : float
+        Maximum distance (in units of coordinates) to consider two atoms as a
+        contact.
+
+    Returns
+    -------
+    tuple[numpy.ndarray, numpy.ndarray]
+        A tuple with two arrays of `int` with the indexes of atoms in contact.
+        Indexes correspond to the `coordinates` array.
+    """
 
     # pre-allocate result array
     contacts_array = np.zeros((idx_a.shape[0], idx_a.shape[0]), dtype=np.bool_)
 
     # Slice coordinate arrays
-    xyz_a = coordinates_array[idx_a]
-    xyz_b = coordinates_array[idx_b]
+    xyz_a = coordinates[idx_a]
+    xyz_b = coordinates[idx_b]
 
     # run distance calculations
-    d_sq = max_dist * max_dist
+    d_max_sq = dmax * dmax
     for i, (xi, yi, zi) in enumerate(xyz_a):
         for j, (xj, yj, zj) in enumerate(xyz_b):
-            dij = (xi - xj) ** 2 + (yi - yj) ** 2 + (zi - zj) ** 2
-            if dij <= d_sq:
+            dij_sq = (xi - xj) ** 2 + (yi - yj) ** 2 + (zi - zj) ** 2
+            if dij_sq <= d_max_sq:
                 contacts_array[i, j] = True
 
     # Convert indices to idx_* indices
@@ -42,33 +61,49 @@ def get_pairwise_contacts(coordinates_array, idx_a, idx_b, max_dist):
     return (idx_a[i_a], idx_b[i_b])
 
 
-def get_intermolecular_contacts(structure, max_dist=5.0):
-    """Return a list of all atom-atom pairs within the max distance.
+def get_intermolecular_contacts(structure, max_distance=5.0):
+    """Return `Atom` pairs within `max_distance` in the input structure.
 
-    Ignores contacts between atoms belonging to the same chain.
+    Ignores contacts between `Atom` in the same chain.
+
+    Parameters
+    ----------
+    structure : `fccpy.Structure`
+        Object with 3D coordinates and atom information.
+    max_distance : float
+        Maximum distance to consider two atoms in contacts. Units must
+        match those of the coordinates of the `structure` input.
+
+    Yields
+    ------
+    tuple[`Atom`, `Atom`]
+        Pairs of `Atom` instances in contact.
     """
 
     # Divide atoms in chains
-    # Convert lists of ints to numpy arrays
-    atoms_per_chain = {
-        k: np.array(v, dtype=np.int64) for k, v in divide_by_chain(structure).items()
-    }
+    # Convert lists of atom idxs to numpy arrays
+    atoms_per_chain = [
+        np.array(v, dtype=np.int64) for v in structure.atoms_by_chain().values()
+    ]
 
     # Calculate pairwise contacts between atoms of each pair of chains
-    for chain_i, chain_j in combinations(atoms_per_chain, 2):
-        xyz_idx_i = atoms_per_chain[chain_i]
-        xyz_idx_j = atoms_per_chain[chain_j]
-
-        pairs = get_pairwise_contacts(structure.xyz, xyz_idx_i, xyz_idx_j, max_dist)
-
+    for idx_chain_i, idx_chain_j in combinations(atoms_per_chain, 2):
+        pairs = get_pairwise_contacts(
+            structure.xyz, idx_chain_i, idx_chain_j, max_distance
+        )
         for i, j in zip(*pairs):
             yield structure.atom(i), structure.atom(j)
 
 
-def write_contact_file(atom_pair_list, filepath):
-    """Write pairs of atoms to a file, one pair per line.
+def write_contact_file(atom_pairs, filepath):
+    """Write pairs of atoms to file in CSV format.
 
-    atom_pair_list is an iterable of (Atom, Atom) objects.
+    Parameters
+    ----------
+    atom_pairs : iterable[tuple[`Atom`, `Atom`]]
+        List or iterator with pairs of atoms.
+    filepath : Path
+        Path to output file.
     """
 
     try:
@@ -77,6 +112,5 @@ def write_contact_file(atom_pair_list, filepath):
         raise IOError("'filepath' must be of type str or pathlib.Path")
 
     with filepath.open("wt") as handle:
-        handle.write(
-            "\n".join(f"{atom_i}\t{atom_j}" for atom_i, atom_j in atom_pair_list)
-        )
+        contents = (f"{a_j.csv},{a_j.csv}" for a_i, a_j in atom_pairs)
+        handle.write("\n".join(contents))

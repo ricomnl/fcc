@@ -38,8 +38,8 @@ def test_performance_parse_pdb_1K8K(input_dir, benchmark):
         rounds=10,
         warmup_rounds=5,
     )
-    if benchmark.stats.stats.mean > 0.10:
-        pytest.fail("Exceeding expected average time of 10ms")
+    if benchmark.stats.stats.mean > 0.2:
+        pytest.fail("Exceeding expected average time of 200ms")
 
 
 @pytest.mark.benchmark(group="io")
@@ -73,8 +73,8 @@ def test_performance_parse_pdb_1K8K_uncompressed(input_dir, benchmark):
             rounds=10,
             warmup_rounds=5,
         )
-        if benchmark.stats.stats.mean > 0.06:
-            pytest.fail("Exceeding expected average time of 6ms")
+        if benchmark.stats.stats.mean > 0.15:
+            pytest.fail("Exceeding expected average time of 150ms")
 
 
 @pytest.mark.benchmark(group="io")

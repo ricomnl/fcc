@@ -2,6 +2,10 @@
 
 Implements top-level parser and dispatches arguments to the
 relevant submodules.
+
+To add support for a new subcommand:
+    - Place the file in `cli_submodules`
+    - Create a new Subcommand instance under `SUBCOMMANDS`
 """
 
 import argparse
@@ -22,7 +26,7 @@ class Subcommand:
     func: Callable
 
 
-AVAILABLE_SUBCOMMANDS = (
+SUBCOMMANDS = (
     Subcommand(
         name="mkcontacts",
         description="calculates contacts in one or more structures.",
@@ -32,7 +36,7 @@ AVAILABLE_SUBCOMMANDS = (
 
 # Dynamically create usage string
 _subcmd_str = "\n".join(
-    f"\t{subcmd.name}\t\t{subcmd.description}\n" for subcmd in AVAILABLE_SUBCOMMANDS
+    f"  {subcmd.name}\t\t{subcmd.description}\n" for subcmd in SUBCOMMANDS
 )
 
 _usage = textwrap.dedent(
@@ -50,13 +54,11 @@ def main():
     """Top-level script for fccpy."""
 
     ap = argparse.ArgumentParser(
-        description=__doc__,
         usage=_usage,
     )
 
     ap.add_argument(
         "command",
-        choices=[s.name for s in AVAILABLE_SUBCOMMANDS],
         help="Sub-command to run",
     )
 
@@ -65,11 +67,11 @@ def main():
 
     # Get SubCommand and invoke function
     # Silly, but this costs peanuts
-    for subcmd in AVAILABLE_SUBCOMMANDS:
+    for subcmd in SUBCOMMANDS:
         if args.command == subcmd.name:
             break
     else:
-        raise Exception("Er... this should not happen..")
+        raise ValueError(f"Unknown subcommand: {args.command!r}")
 
     subcmd.func(sys.argv[2:])
 

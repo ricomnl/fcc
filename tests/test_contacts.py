@@ -35,7 +35,7 @@ def test_get_intermolecular_contacts(input_dir):
     # Read independent data
     ref_fn = Path(input_dir, "1k8k.contacts.gz")
     with open_file(ref_fn) as handle:
-        true_contacts = []
+        ref_contacts = []
         for lineno, line in enumerate(handle):
             try:
                 (
@@ -54,18 +54,18 @@ def test_get_intermolecular_contacts(input_dir):
             else:
                 atom_i = Atom(chain_i, int(resid_i), "", name_i)
                 atom_j = Atom(chain_j, int(resid_j), "", name_j)
-                true_contacts.append((atom_i, atom_j))
+                ref_contacts.append((atom_i, atom_j))
 
     # Compare to calculated contacts
-    assert len(contacts) == len(true_contacts)
+    assert len(contacts) == len(ref_contacts)
 
     contacts.sort()
-    true_contacts.sort()
+    ref_contacts.sort()
 
-    for c, tc in zip(contacts, true_contacts):
-        c_a, c_b = c
-        tc_a, tc_b = tc
-        # This is annoying because of icodes
-        for prop in ["chain", "resid", "name"]:
-            assert getattr(c_a, prop) == getattr(tc_a, prop)
-            assert getattr(c_b, prop) == getattr(tc_b, prop)
+    for (a, b), (ref_a, ref_b) in zip(contacts, ref_contacts):
+        assert a.chain == ref_a.chain
+        assert a.resid == ref_a.resid
+        assert a.name.strip() == ref_a.name.strip()
+        assert b.chain == ref_b.chain
+        assert b.resid == ref_b.resid
+        assert b.name.strip() == ref_b.name.strip()
