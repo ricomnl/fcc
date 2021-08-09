@@ -14,7 +14,7 @@ from pathlib import Path
 import sys
 import time
 
-from fccpy import parse_pdb, get_intermolecular_contacts, write_contact_file
+from fccpy import parse_pdb, get_intermolecular_contacts, contacts_to_file
 
 
 # Worker function for multiprocessing
@@ -25,7 +25,7 @@ def calculate_contacts(filepath, dmax):
     clist = get_intermolecular_contacts(s, dmax)
 
     out_fn = Path(filepath.parent, filepath.stem + ".contacts")
-    write_contact_file(clist, out_fn)
+    contacts_to_file(clist, out_fn)
 
     _end_time = time.time_ns()
     return (_end_time - _start_time) / 1e9  # return in seconds
@@ -93,16 +93,14 @@ def get_parser(cmd_args):
     )
     io_args = ap.add_mutually_exclusive_group(required=True)
     io_args.add_argument(
-        "-s",
-        "--structures",
+        "-i",
         dest="struct_list",
         type=check_file,
         nargs="+",
-        help="Input structure(s)",
+        help="Input structure(s).",
     )
     io_args.add_argument(
-        "-f",
-        "--filelist",
+        "-l",
         dest="struct_list",
         type=list_of_paths,
         help="File containing one structure file path per line.",

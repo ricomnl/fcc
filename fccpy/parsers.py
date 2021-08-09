@@ -6,7 +6,7 @@ import numpy as np
 
 from fccpy.exceptions import StructureParserException
 from fccpy.structure import Atom, Structure
-from fccpy.utils import open_file
+from fccpy.utils import as_file_handle
 
 
 __all__ = ["parse_pdb"]
@@ -71,7 +71,7 @@ def parse_pdb(filepath, hetatm=False):
 
     atoms = []
     xyz = []
-    with open_file(fp) as handle:
+    with as_file_handle(fp, "rt") as handle:
         for ln, line in enumerate(handle, start=1):
             if line.startswith(rectypes):
                 name = line[12:16]

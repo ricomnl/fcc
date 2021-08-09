@@ -1,4 +1,4 @@
-"""Functions to calculate and compare contacts."""
+"""Code to calculate atomic contacts."""
 
 from itertools import combinations
 from pathlib import Path
@@ -6,8 +6,11 @@ from pathlib import Path
 from numba import jit
 import numpy as np
 
+from fccpy.structure import Atom, atom_to_csv
+from fccpy.utils import as_file_handle
 
-__all__ = ["get_intermolecular_contacts", "write_contact_file"]
+
+__all__ = ["get_intermolecular_contacts", "contacts_to_file", "contacts_from_file"]
 
 
 # Functions to calculate contacts
@@ -95,7 +98,7 @@ def get_intermolecular_contacts(structure, max_distance=5.0):
             yield structure.atom(i), structure.atom(j)
 
 
-def write_contact_file(atom_pairs, filepath):
+def contacts_to_file(atom_pairs, filepath):
     """Write pairs of atoms to file in CSV format.
 
     Parameters
@@ -111,6 +114,41 @@ def write_contact_file(atom_pairs, filepath):
     except TypeError:
         raise IOError("'filepath' must be of type str or pathlib.Path")
 
-    with filepath.open("wt") as handle:
-        contents = (f"{a_j.csv},{a_j.csv}" for a_i, a_j in atom_pairs)
+    with as_file_handle(filepath, "wt") as handle:
+        contents = (f"{atom_to_csv(a_j)},{atom_to_csv(a_j)}" for a_i, a_j in atom_pairs)
         handle.write("\n".join(contents))
+
+
+def contacts_from_file(filepath):
+    """Read pairs of atoms from a file in CSV format.
+
+    Parameters
+    ----------
+    filepath : Path
+        Path to output file.
+
+    Returns
+    -------
+    iterable[tuple[`Atom`, `Atom`]]
+    """
+
+    with as_file_handle(filepath, "rt") as handle:
+        for lineno, line in enumerate(handle):
+            try:
+                (
+                    chain_a,
+                    resid_a,
+                    icode_a,
+                    name_a,
+                    chain_b,
+                    resid_b,
+                    icode_b,
+                    name_b,
+                ) = line.rstrip().split(",")
+            except ValueError:
+                msg = f"Error parsing contact file {filepath.name} at line {lineno}"
+                raise ValueError(msg)
+
+            yield Atom(chain_a, resid_a, icode_a, name_a), Atom(
+                chain_b, resid_b, icode_b, name_b
+            )
