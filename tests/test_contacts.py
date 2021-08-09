@@ -5,10 +5,9 @@ from pathlib import Path
 import numpy as np
 
 from fccpy import parse_pdb
-from fccpy import get_intermolecular_contacts
+from fccpy.contacts import get_intermolecular_contacts, get_pairwise_contacts
 from fccpy.structure import Atom
-from fccpy.contacts import get_pairwise_contacts
-from fccpy.utils import open_file
+from fccpy.utils import as_file_handle
 
 
 def test_get_pairwise_contacts():
@@ -34,7 +33,7 @@ def test_get_intermolecular_contacts(input_dir):
 
     # Read independent data
     ref_fn = Path(input_dir, "1k8k.contacts.gz")
-    with open_file(ref_fn) as handle:
+    with as_file_handle(ref_fn, "rt") as handle:
         ref_contacts = []
         for lineno, line in enumerate(handle):
             try:
