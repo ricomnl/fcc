@@ -178,7 +178,7 @@ def main(cmd_args):
 
     # Build matrix
     _start_time3 = time.time()
-    mtx = list(build_matrix(clist_hashed, metric=METRICS[args.metric]))
+    idxs, sims = build_matrix(clist_hashed, metric=METRICS[args.metric])
     _end_time = time.time()
     mtx_time = _end_time - _start_time3
 
@@ -187,7 +187,7 @@ def main(cmd_args):
 
     # Write to file
     log(f"  writing matrix to file: {args.output_file}")
-    write_matrix(mtx, args.output_file)
+    write_matrix(idxs, sims, args.output_file)
 
     _end_time = time.time()
     cumtime = _end_time - _start_time1
