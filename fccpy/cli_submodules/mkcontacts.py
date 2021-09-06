@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-"""Utility script to generate contact files for structures.
-
-Calculations are distributed on multiple processors.
-"""
+"""Parallel calculation of atomic contacts for structures."""
 
 import argparse
 from datetime import datetime
@@ -14,7 +11,8 @@ from pathlib import Path
 import sys
 import time
 
-from fccpy import parse_pdb, get_intermolecular_contacts, contacts_to_file
+from fccpy import parse_pdb
+from fccpy.contacts import get_intermolecular_contacts, write_contacts
 
 
 # Worker function for multiprocessing
@@ -25,7 +23,7 @@ def calculate_contacts(filepath, dmax):
     clist = get_intermolecular_contacts(s, dmax)
 
     out_fn = Path(filepath.parent, filepath.stem + ".contacts")
-    contacts_to_file(clist, out_fn)
+    write_contacts(clist, out_fn)
 
     _end_time = time.time_ns()
     return (_end_time - _start_time) / 1e9  # return in seconds
@@ -89,34 +87,37 @@ def get_parser(cmd_args):
     """Create cmd arguments and options parser."""
 
     ap = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
-    io_args = ap.add_mutually_exclusive_group(required=True)
-    io_args.add_argument(
-        "-i",
-        dest="struct_list",
-        type=check_file,
-        nargs="+",
-        help="Input structure(s).",
-    )
-    io_args.add_argument(
-        "-l",
-        dest="struct_list",
+    ap.add_argument(
+        "flist",
         type=list_of_paths,
-        help="File containing one structure file path per line.",
+        help=(
+            "Input file listing structures to process, one per line. "
+            "(default: %(default)s)"
+        ),
     )
     ap.add_argument(
         "--max-dist",
         type=is_positive_float,
         default=5.0,
-        help="Maximum distance between atoms to consider them in contact.",
+        help=(
+            "Distance threshold to define a contact between two atoms. "
+            "(default: %(default)s)"
+        ),
     )
     ap.add_argument(
         "-p",
         "--num_processes",
         type=validate_num_cpu,
         default=multiprocessing.cpu_count(),
-        help="Number of CPUs to use during calculations.",
+        help=(
+            "Number of CPUs to use during calculations. "
+            "By default uses all available CPUs, as detected by the "
+            "python multiprocessing module. This might not be fully "
+            "accurate with queueing systems. For this machine, the "
+            "default is %(default)s"
+        ),
     )
 
     # If we are calling from a submodule, the help might be wonky

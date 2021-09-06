@@ -14,7 +14,7 @@ import sys
 import textwrap
 from typing import Callable
 
-from fccpy.cli_submodules import mkcontacts
+from fccpy.cli_submodules import mkcontacts, mtx
 
 __all__ = ["main"]
 
@@ -32,11 +32,16 @@ SUBCOMMANDS = (
         description="calculates contacts in one or more structures.",
         func=mkcontacts.main,
     ),
+    Subcommand(
+        name="mtx",
+        description="builds similarity matrix from contact files.",
+        func=mtx.main,
+    ),
 )
 
 # Dynamically create usage string
 _subcmd_str = "\n".join(
-    f"  {subcmd.name}\t\t{subcmd.description}\n" for subcmd in SUBCOMMANDS
+    f"  {subcmd.name}\t\t{subcmd.description}" for subcmd in SUBCOMMANDS
 )
 
 _usage = textwrap.dedent(

@@ -22,6 +22,7 @@ setup(
     install_requires=[
         "numba",
         "numpy",
+        "h5py",
     ],
     packages=find_packages(),
     entry_points={

@@ -1,6 +1,8 @@
 """Code to calculate atomic contacts."""
 
+from collections import Counter
 from itertools import combinations
+from operator import attrgetter
 from pathlib import Path
 
 from numba import jit
@@ -8,9 +10,6 @@ import numpy as np
 
 from fccpy.structure import Atom, atom_to_csv
 from fccpy.utils import as_file_handle
-
-
-__all__ = ["get_intermolecular_contacts", "contacts_to_file", "contacts_from_file"]
 
 
 # Functions to calculate contacts
@@ -98,28 +97,86 @@ def get_intermolecular_contacts(structure, max_distance=5.0):
             yield structure.atom(i), structure.atom(j)
 
 
-def contacts_to_file(atom_pairs, filepath):
-    """Write pairs of atoms to file in CSV format.
+# Selectors
+BY_CHAIN = attrgetter("chain")
+BY_RESIDUE = attrgetter("chain", "resid", "icode")
+BY_RESIDUE_NOCHAIN = attrgetter("resid", "icode")
+BY_ATOM = attrgetter("chain", "resid", "icode", "name")
+
+
+# Hash functions
+def hash_contact(atom_pair, selector1=None, selector2=None):
+    """Return a unique hash for a pair of atoms.
 
     Parameters
     ----------
-    atom_pairs : iterable[tuple[`Atom`, `Atom`]]
-        List or iterator with pairs of atoms.
-    filepath : Path
-        Path to output file.
+    atom_pair : tuple[`Atom`, `Atom`]
+        A pair of atom objects.
+    selector1, selector2 : callable, optional
+        a callable that takes an `Atom` as input and returns
+        some of its attributes. If a selectors is None, all
+        attributes of the Atom will be considered.
+
+    Returns
+    -------
+    a unique hash string to the input atom pair.
+
+    Examples
+    --------
+    >>> from fccpy.contacts import BY_CHAIN
+    >>> a1 = Atom("A", 1, "", "N")
+    >>> a2 = Atom("B", 2, "", "N")
+    >>> hash_contact(a1, a2)
+    >>> hash_contact(a1, a2, selector1=BY_CHAIN, selector2=BY_CHAIN)
     """
 
-    try:
-        filepath = Path(filepath)
-    except TypeError:
-        raise IOError("'filepath' must be of type str or pathlib.Path")
+    selector1 = selector1 if selector1 is not None else tuple
+    selector2 = selector2 if selector2 is not None else tuple
 
-    with as_file_handle(filepath, "wt") as handle:
-        contents = (f"{atom_to_csv(a_j)},{atom_to_csv(a_j)}" for a_i, a_j in atom_pairs)
-        handle.write("\n".join(contents))
+    atom1, atom2 = atom_pair
+
+    return str(hash((selector1(atom1), selector2(atom2))))
 
 
-def contacts_from_file(filepath):
+def hash_many(list_of_pairs, unique=True, selector1=None, selector2=None):
+    """Run hash function on a list of contacts.
+
+    Calls `hash_contact` on each item in the input list.
+
+    Parameters
+    ----------
+    list_of_pairs : list[tuple[`Atom`, `Atom`]]
+        a list of Atom pairs
+    unique : bool, optional
+        if `unique` is True (default), each unique pair
+        in a list will be added once to the output set.
+        If `unique` is False, copies of the same contact
+        will be added. This is useful when the number of
+        occurences of a pair, besides their identity, is
+        necessary for further calculations.
+    selector1, selector2 : callable, optional
+        a callable that takes an `Atom` as input and returns
+        some of its attributes. If a selector is `None`, will
+        hash based on all attributes of the `Atom`.
+
+    Returns
+    -------
+    a list of frozensets with hashes for each list of pairs.
+    """
+
+    hashes = Counter(
+        hash_contact(pair, selector1=selector1, selector2=selector2)
+        for pair in list_of_pairs
+    )
+    if unique:
+        return frozenset(hashes)
+
+    # hashA_0, hashA_1, hashB_0, ...
+    return frozenset(f"{hash_}_{i}" for hash_, n in hashes.items() for i in range(n))
+
+
+# IO
+def read_contacts(filepath):
     """Read pairs of atoms from a file in CSV format.
 
     Parameters
@@ -149,6 +206,27 @@ def contacts_from_file(filepath):
                 msg = f"Error parsing contact file {filepath.name} at line {lineno}"
                 raise ValueError(msg)
 
-            yield Atom(chain_a, resid_a, icode_a, name_a), Atom(
-                chain_b, resid_b, icode_b, name_b
-            )
+            atomA = Atom(chain_a, int(resid_a), icode_a, name_a)
+            atomB = Atom(chain_b, int(resid_b), icode_b, name_b)
+            yield atomA, atomB
+
+
+def write_contacts(atom_pairs, filepath):
+    """Write pairs of atoms to file in CSV format.
+
+    Parameters
+    ----------
+    atom_pairs : iterable[tuple[`Atom`, `Atom`]]
+        List or iterator with pairs of atoms.
+    filepath : Path
+        Path to output file.
+    """
+
+    try:
+        filepath = Path(filepath)
+    except TypeError:
+        raise IOError("'filepath' must be of type str or pathlib.Path")
+
+    with as_file_handle(filepath, "wt") as handle:
+        contents = (f"{atom_to_csv(a_i)},{atom_to_csv(a_j)}" for a_i, a_j in atom_pairs)
+        handle.write("\n".join(contents))
