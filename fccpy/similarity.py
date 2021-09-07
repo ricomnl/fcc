@@ -6,7 +6,7 @@ import h5py
 import numpy as np
 
 from fccpy.exceptions import MatrixReadingException
-from fccpy.utils import as_file_handle, get_num_combinations
+from fccpy.utils import as_file_handle
 
 
 # Similarity metrics
@@ -52,6 +52,17 @@ def fcc(set_A, set_B):
 def build_matrix(setlist, metric=fcc, precision=np.half):
     """Build a similarity matrix from sets of hashed contacts.
 
+    The output is a pair of arrays representing the elements of
+    the similarity matrix that are non-zero. The first array is
+    the coordinates of the elements (i, j), and the second array
+    contains the similarities s(i,j) and s(j,i), which might not
+    be the same depending on the metric used.
+
+    The rationale for not storing the similarity matrix in this
+    format is two-fold: 1) memory-efficiency, since we only store
+    elements that contain any information, and 2) performance, since
+    for clustering pairs of elements with similarity = 0 are irrelevant.
+
     Parameters
     ----------
     setlist : [[int]]
@@ -73,9 +84,9 @@ def build_matrix(setlist, metric=fcc, precision=np.half):
         array of indices to the original setlist, for each pair of elements
         for which similarities were computed.
     sims : np.ndarray
-        array of shape (n, 2), where n is the number of pairwise combinations
-        of all N elements of the original setlist. Each entry in this array
-        has similarities s(i, j), s(j, i) for elements i and j.
+        array of similarities between pairs of elements i and i of shape (n, 2),
+        where n is the number of pairwise combinations of all N elements of the
+        original setlist where s(i, j) or s(j, i) is non-zero.
     """
 
     if _is_symmetric(metric):
@@ -83,17 +94,17 @@ def build_matrix(setlist, metric=fcc, precision=np.half):
     else:
         _builder = _build_matrix_asym
 
-    k = get_num_combinations(len(setlist))
-    idxs = np.empty((k, 2), dtype=np.int32)
-    sims = np.empty((k, 2), dtype=precision)
-
-    for k_, (i, j, s_ij, s_ji) in enumerate(_builder(setlist, metric=metric)):
+    idxs_, sims_ = [], []
+    for (i, j, s_ij, s_ji) in _builder(setlist, metric=metric):
         # Ignore zeros to save space
-        if s_ij and s_ji:
-            idxs[k_] = (i, j)
-            sims[k_] = (s_ij, s_ji)
+        if s_ij or s_ji:
+            idxs_.append((i, j))
+            sims_.append((s_ij, s_ji))
 
-    return idxs, sims
+    idxs_ = np.array(idxs_, dtype=np.int32)
+    sims_ = np.array(sims_, dtype=precision)
+
+    return idxs_, sims_
 
 
 def _is_symmetric(f):
@@ -167,9 +178,9 @@ def read_matrix_csv(filepath, precision=np.half):
         array of indices to the original setlist, for each pair of elements
         for which similarities were computed.
     sims : np.ndarray
-        array of shape (n, 2), where n is the number of pairwise combinations
-        of all N elements of the original setlist. Each entry in this array
-        has similarities s(i, j), s(j, i) for elements i and j.
+        array of similarities between pairs of elements i and i of shape (n, 2),
+        where n is the number of pairwise combinations of all N elements of the
+        original setlist where s(i, j) or s(j, i) is non-zero.
     """
 
     idxs, sims = [], []
@@ -213,9 +224,9 @@ def read_matrix(filepath, precision=np.half):
         array of indices to the original setlist, for each pair of elements
         for which similarities were computed.
     sims : np.ndarray
-        array of shape (n, 2), where n is the number of pairwise combinations
-        of all N elements of the original setlist. Each entry in this array
-        has similarities s(i, j), s(j, i) for elements i and j.
+        array of similarities between pairs of elements i and i of shape (n, 2),
+        where n is the number of pairwise combinations of all N elements of the
+        original setlist where s(i, j) or s(j, i) is non-zero.
     """
 
     with as_file_handle(filepath, "rb") as handle:
@@ -255,9 +266,9 @@ def write_matrix_csv(idxs, sims, filepath, precision=3):
         array of indices to the original setlist, for each pair of elements
         for which similarities were computed.
     sims : np.ndarray
-        array of shape (n, 2), where n is the number of pairwise combinations
-        of all N elements of the original setlist. Each entry in this array
-        has similarities s(i, j), s(j, i) for elements i and j.
+        array of similarities between pairs of elements i and i of shape (n, 2),
+        where n is the number of pairwise combinations of all N elements of the
+        original setlist where s(i, j) or s(j, i) is non-zero.
     filepath : pathlib.Path
         Path to output file.
     precision : float
@@ -286,9 +297,9 @@ def write_matrix(idxs, sims, filepath):
         array of indices to the original setlist, for each pair of elements
         for which similarities were computed.
     sims : np.ndarray
-        array of shape (n, 2), where n is the number of pairwise combinations
-        of all N elements of the original setlist. Each entry in this array
-        has similarities s(i, j), s(j, i) for elements i and j.
+        array of similarities between pairs of elements i and i of shape (n, 2),
+        where n is the number of pairwise combinations of all N elements of the
+        original setlist where s(i, j) or s(j, i) is non-zero.
     filepath : pathlib.Path
         Path to output file.
     """
