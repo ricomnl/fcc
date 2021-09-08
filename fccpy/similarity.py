@@ -11,10 +11,10 @@ from fccpy.utils import as_file_handle
 
 # Similarity metrics
 # Defined as a bundle after the last one.
-def jaccard(set_A, set_B):  # fix latex formula
+def jaccard(set_A, set_B):
     r"""Calculate the Jaccard similarity between two sets.
 
-    .. math:: D(A, B) = \frac{|{A \cap B}|}{|{A \cap B}|}
+    .. math:: D(A, B) = \frac{|{A \cap B}|}{|{A \cup B}|}
 
     Its value is always bounded between 0 (no elements in common)
     and 1 (all elements shared).
