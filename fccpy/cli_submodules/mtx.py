@@ -7,7 +7,6 @@ and modes of comparison, adequate for different biological systems.
 """
 
 import argparse
-from datetime import datetime
 import os
 from pathlib import Path
 import sys
@@ -18,49 +17,10 @@ from fccpy.contacts import BY_ATOM, BY_RESIDUE, BY_RESIDUE_NOCHAIN
 from fccpy.contacts import read_contacts, hash_many
 from fccpy.similarity import build_matrix, write_matrix
 from fccpy.similarity import jaccard, overlap, fcc  # metrics
+from .cli_utils import list_of_paths, log
 
 # Update here if necessary
 METRICS = {"jaccard": jaccard, "overlap": overlap, "fcc": fcc}
-
-
-# Utilitity Functions
-def log(msg, **kwargs):
-    """Write a message to stdout with a timestamp."""
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{ts}] {msg}", **kwargs)
-
-
-def is_positive_float(n):
-    """Return n if n is positive and non-zero."""
-    assert isinstance(n, float), f"{n!r} ({type(n)=}) must be of type float."
-    if n > 0:
-        return n
-    raise argparse.ArgumentTypeError(f"{n!r} must be positive and non-zero.")
-
-
-def check_file(fn):
-    """Validate that the file exists and is readable."""
-    fp = Path(fn)
-    if not fp.exists():
-        raise argparse.ArgumentTypeError(f"{fp!r} does not exist.")
-    elif not fp.is_file():
-        raise argparse.ArgumentTypeError(f"{fp!r} is not a file.")
-    return fp
-
-
-def list_of_paths(filepath):
-    """Parse a file containing one file path per line."""
-    filepath = Path(filepath)
-    fp_list = []
-    with filepath.open("rt") as handle:
-        for fn in handle:
-            structure_fp = Path(filepath.parent, fn.strip()).resolve()
-            contact_fp = structure_fp.with_suffix(".contacts")
-            # Paths are relative to the file where they are written,
-            # not relative to this script. So convert them accordingly.
-            fp = check_file(contact_fp)
-            fp_list.append(fp)
-    return fp_list
 
 
 def get_parser(cmd_args):
