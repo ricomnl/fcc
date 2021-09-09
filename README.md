@@ -2,8 +2,8 @@
 
 # Contact-based clustering for protein structures
 
-Open-source package that implements a fast clustering algorithm for protein
-structures based on a contact-based similarity metric.
+Open-source package that implements a fast clustering algorithms
+for protein structures based on a contact-based similarity metrics.
 
 Advantages over traditional RMSD-based clustering methods include:
 - Does not require alignments.
@@ -27,16 +27,18 @@ You can use fccpy as a library or as a set of command-line utilities.
 
 ### As a script
 ```bash
-fccpy mkcontacts -f cli_tests/1brs_100.list
+fccpy mkcontacts file.list
+fccpy mtx file.list -o similarity.h5
+fccpy cluster similarity.h5 -o clusters.out -pdb -f file.list
 ```
 
 ### As a library
 ```python
 import pathlib
-from fccpy import parse_pdb, get_intermolecular_contacts
+from fccpy import read_pdb, get_intermolecular_contacts
 
 p = pathlib.Path("tests", "inputs", "1brs.pdb.gz")
-structure = parse_pdb(p)
+structure = read_pdb(p)
 
 for atom_a, atom_b in get_intermolecular_contacts(structure):
     print(f"{atom_a}\t{atom_b}")
@@ -44,4 +46,4 @@ for atom_a, atom_b in get_intermolecular_contacts(structure):
 
 ## License
 
-TBD
+Apache License 2.0 (see [LICENSE](LICENSE) file for details)
