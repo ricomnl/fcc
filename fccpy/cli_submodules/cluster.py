@@ -109,8 +109,9 @@ def get_parser(cmd_args):
         ),
     )
     ap.add_argument(
-        "-wc",
-        "--write-cluster-pdb",
+        "-pdb",
+        "--write-clusters-as-pdb",
+        dest="write_pdb",
         action="store_true",
         help=(
             "Write clusters as ensemble of models in PDB format. Clusters "
@@ -158,7 +159,7 @@ def get_parser(cmd_args):
     args = ap.parse_args(cmd_args)
 
     # Do validation
-    if args.write_cluster_pdb and not args.flist:
+    if args.write_pdb and not args.flist:
         raise ap.error("-wc/--write-clusters requires -flist")
 
     return args
@@ -193,7 +194,7 @@ def main(cmd_args):
     write_clusters(labels, args.output_file)
 
     # Writing clusters as PDBs
-    if args.write_cluster_pdb:
+    if args.write_pdb:
         write_clusters_as_pdb(labels, args.flist)
 
     _end_time = time.time()
