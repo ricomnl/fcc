@@ -5,7 +5,7 @@ from collections import defaultdict
 import numpy as np
 
 
-def dbscan(idxs, sims, eps, minsize):
+def dbscan(idxs, sims, **kwargs):
     """Cluster elements in distance matrix using the DBSCAN algorithm.
 
     This implementation assumes the similarity metric used is 1.0 when
@@ -23,13 +23,14 @@ def dbscan(idxs, sims, eps, minsize):
         array of similarities between pairs of elements i and i of shape (n, 2),
         where n is the number of pairwise combinations of all N elements of the
         set where s(i, j) or s(j, i) is non-zero.
-    eps : float
+
+    eps : float, optional
         minimum distance between two elements i and j so that i and j
         are considered neighbors. Only neighboring elements will be
-        placed in the same cluster.
-    minsize : int
+        placed in the same cluster. Default is 0.6.
+    minsize : int, optional
         minimum number of neighboring elements necessary to form a
-        cluster.
+        cluster. Default is 4.
 
     Returns
     -------
@@ -37,6 +38,9 @@ def dbscan(idxs, sims, eps, minsize):
     identified by a number k >= 0. If an element is missing from the dict
     then it was not found to be part of any cluster.
     """
+
+    eps = kwargs.get("eps", 0.6)
+    minsize = kwargs.get("minsize", 4)
 
     minsize = minsize - 1  # the core point counts towards the size of its own cluster.
 
@@ -59,8 +63,10 @@ def dbscan(idxs, sims, eps, minsize):
     clustdict = {k: 0 for k in uniq_ele}  # label everyone as noise to start with
 
     # Make clusters
+    # Iterate on elements in decreasing order of neighbor lists.
+    # Only operate on clusterable elements
     clust_idx = 0
-    for ele in nbdict:  # only operate on clusterable elements
+    for ele in sorted(nbdict, key=num_neighbors.get, reverse=True):
         if clustdict[ele] or num_neighbors[ele] < minsize:
             continue  # previously processed or noise
 

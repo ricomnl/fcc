@@ -14,7 +14,7 @@ import sys
 import textwrap
 from typing import Callable
 
-from fccpy.cli_submodules import mkcontacts, mtx
+from fccpy.cli_submodules import mkcontacts, mtx, cluster
 
 __all__ = ["main"]
 
@@ -36,6 +36,11 @@ SUBCOMMANDS = (
         name="mtx",
         description="builds similarity matrix from contact files.",
         func=mtx.main,
+    ),
+    Subcommand(
+        name="cluster",
+        description="clusters structures based on a similarity matrix.",
+        func=cluster.main,
     ),
 )
 
