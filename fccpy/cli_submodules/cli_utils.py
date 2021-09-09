@@ -14,9 +14,14 @@ def log(msg, **kwargs):
 
 def is_positive_float(n):
     """Return n if n is positive and non-zero."""
-    assert isinstance(n, float), f"{n!r} ({type(n)=}) must be of type float."
-    if n > 0:
-        return n
+    try:
+        n = float(n)
+    except ValueError:
+        msg = f"{n!r} ({type(n)=}) cannot be converted to a float."
+        raise argparse.ArgumentTypeError(msg)
+    else:
+        if n > 0:
+            return n
     raise argparse.ArgumentTypeError(f"{n!r} must be positive and non-zero.")
 
 

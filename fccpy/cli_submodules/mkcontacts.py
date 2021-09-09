@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 import time
 
-from fccpy import parse_pdb
+from fccpy import read_pdb
 from fccpy.contacts import get_intermolecular_contacts, write_contacts
 from .cli_utils import is_positive_float, list_of_paths, log, validate_num_cpu
 
@@ -18,8 +18,9 @@ from .cli_utils import is_positive_float, list_of_paths, log, validate_num_cpu
 # Worker function for multiprocessing
 def calculate_contacts(filepath, dmax):
     """Calculate contacts for a single structure."""
+
     _start_time = time.time_ns()
-    s = parse_pdb(filepath)
+    s = read_pdb(filepath)
     clist = get_intermolecular_contacts(s, dmax)
 
     out_fn = Path(filepath.parent, filepath.stem + ".contacts")
@@ -38,10 +39,7 @@ def get_parser(cmd_args):
     ap.add_argument(
         "flist",
         type=list_of_paths,
-        help=(
-            "Input file listing structures to process, one per line. "
-            "(default: %(default)s)"
-        ),
+        help=("Input file listing structures to process, one per line. "),
     )
     ap.add_argument(
         "--max-dist",
@@ -83,19 +81,20 @@ def main(cmd_args):
 
     log("started")
     log(f"command: {' '.join(sys.argv)}")
+    log(f" using {args.num_processes} CPUs")
 
     _start_time = time.time()
     timings = []
     _worker = partial(calculate_contacts, dmax=args.max_dist)
     with multiprocessing.Pool(args.num_processes) as pool:
-        jobs = pool.imap(_worker, args.struct_list)
+        jobs = pool.imap(_worker, args.flist)
         for idx, ns in enumerate(jobs, start=1):
             timings.append(ns)
 
-            perc_complete = 100 * idx / len(args.struct_list)
-            fp = args.struct_list[idx - 1]
+            perc_complete = 100 * idx / len(args.flist)
+            fp = args.flist[idx - 1]
             msg = f" analyzing: {fp.name:<20s} ({perc_complete:>4.1f}%)"
-            if idx == len(args.struct_list):
+            if idx == len(args.flist):
                 log(msg)
             else:
                 log(msg, end="\r")
@@ -105,7 +104,7 @@ def main(cmd_args):
     avetime = sum(timings) / len(timings)
 
     log("finished!")
-    log(f"  number of structures processed: {len(args.struct_list)}")
+    log(f"  number of structures processed: {len(args.flist)}")
     log(f"  average processing time: {avetime:4.3f} s per structure")
     log(f"  performance: {1/avetime:6.1f} structures per second")
     log(f"  total processing time: {cumtime:4.3f} s")
