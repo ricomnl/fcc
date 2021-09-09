@@ -30,7 +30,7 @@ def dbscan(idxs, sims, **kwargs):
         placed in the same cluster. Default is 0.6.
     minsize : int, optional
         minimum number of neighboring elements necessary to form a
-        cluster. Default is 4.
+        cluster. Default is 2.
 
     Returns
     -------
@@ -40,7 +40,7 @@ def dbscan(idxs, sims, **kwargs):
     """
 
     eps = kwargs.get("eps", 0.6)
-    minsize = kwargs.get("minsize", 4)
+    minsize = kwargs.get("minsize", 2)
 
     minsize = minsize - 1  # the core point counts towards the size of its own cluster.
 
