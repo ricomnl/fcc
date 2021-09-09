@@ -31,6 +31,7 @@ class Structure:
         """Return a specific Atom."""
         return self.atoms[idx]
 
+    @property
     def atoms_by_chain(self):
         """Return a dictionary of atom indices grouped by chain id."""
         atoms_per_chain = defaultdict(list)

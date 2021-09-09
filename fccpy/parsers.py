@@ -9,7 +9,7 @@ from fccpy.structure import Atom, Structure
 from fccpy.utils import as_file_handle
 
 
-__all__ = ["parse_pdb"]
+__all__ = ["read_pdb"]
 
 
 # Utility functions
@@ -27,7 +27,7 @@ def is_hydrogen(atom_fullname):
 
 
 # IO functions
-def parse_pdb(filepath, hetatm=False):
+def read_pdb(filepath, hetatm=False):
     """Read a PDB file into a Structure dataclass.
 
     If hetatm is False (default), ignores HETATM records. Raises

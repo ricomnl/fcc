@@ -85,7 +85,7 @@ def get_intermolecular_contacts(structure, max_distance=5.0):
     # Divide atoms in chains
     # Convert lists of atom idxs to numpy arrays
     atoms_per_chain = [
-        np.array(v, dtype=np.int64) for v in structure.atoms_by_chain().values()
+        np.array(v, dtype=np.int64) for v in structure.atoms_by_chain.values()
     ]
 
     # Calculate pairwise contacts between atoms of each pair of chains

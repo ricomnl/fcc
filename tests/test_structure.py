@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from fccpy import parse_pdb
+from fccpy import read_pdb
 
 
 def test_parse_pdb_1k8k(input_dir):
@@ -12,7 +12,7 @@ def test_parse_pdb_1k8k(input_dir):
     expected_atoms = [3214, 1517, 2647, 2293, 1416, 1371, 872]
 
     fp = Path(input_dir, "1k8k.pdb.gz")
-    structure = parse_pdb(fp)
+    structure = read_pdb(fp)
 
     assert len(structure.atoms) == 13330  # heavy atoms only
     assert sorted({a.chain for a in structure}) == expected_chains
@@ -29,7 +29,7 @@ def test_parse_pdb_1BRS(input_dir):
     expected_atoms = [864, 695]
 
     fp = Path(input_dir, "1brs.pdb.gz")
-    structure = parse_pdb(fp)
+    structure = read_pdb(fp)
 
     assert len(structure.atoms) == sum(expected_atoms)
     assert sorted({a.chain for a in structure}) == expected_chains
@@ -46,7 +46,7 @@ def test_parse_pdb_1BRS_w_hetatm(input_dir):
     expected_atoms_w_het = [1009, 772]
 
     fp = Path(input_dir, "1brs.pdb.gz")
-    structure = parse_pdb(fp, hetatm=True)
+    structure = read_pdb(fp, hetatm=True)
 
     assert len(structure.atoms) == sum(expected_atoms_w_het)
     assert sorted({a.chain for a in structure}) == expected_chains
@@ -57,14 +57,14 @@ def test_parse_pdb_1BRS_w_hetatm(input_dir):
 
 
 def test_atoms_by_chain(input_dir):
-    """Test Structure.atoms_by_chain()."""
+    """Test Structure.atoms_by_chain property."""
 
     expected_chains = ["A", "B", "C", "D", "E", "F", "G"]
     expected_atoms = [3214, 1517, 2647, 2293, 1416, 1371, 872]
 
     fp = Path(input_dir, "1k8k.pdb.gz")
-    structure = parse_pdb(fp)
-    chains = structure.atoms_by_chain()
+    structure = read_pdb(fp)
+    chains = structure.atoms_by_chain
     assert len(chains) == 7
     assert list(chains) == expected_chains
 

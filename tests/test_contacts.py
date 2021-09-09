@@ -6,7 +6,7 @@ import tempfile
 
 import numpy as np
 
-from fccpy import parse_pdb
+from fccpy import read_pdb
 from fccpy.contacts import get_intermolecular_contacts, get_pairwise_contacts
 from fccpy.contacts import hash_contact, hash_many
 from fccpy.contacts import read_contacts, write_contacts
@@ -43,7 +43,7 @@ def test_get_intermolecular_contacts(input_dir):
     """Test intermolecular contact calculation on 1k8k.pdb."""
 
     fp = Path(input_dir, "1k8k.pdb.gz")
-    s = parse_pdb(fp)
+    s = read_pdb(fp)
     contacts = list(get_intermolecular_contacts(s, 5.0))
 
     # Read independent data
