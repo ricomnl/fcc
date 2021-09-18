@@ -94,7 +94,7 @@ def get_intermolecular_contacts(structure, max_distance=5.0):
             structure.xyz, idx_chain_i, idx_chain_j, max_distance
         )
         for i, j in zip(*pairs):
-            yield structure.atom(i), structure.atom(j)
+            yield structure.atoms[i], structure.atoms[j]
 
 
 # Selectors
