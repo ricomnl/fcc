@@ -10,12 +10,12 @@ from pathlib import Path
 import sys
 import time
 
-from fccpy.clustering import dbscan
+from fccpy.clustering import clique, dbscan, disjoint_taylor_butina
 from fccpy.similarity import read_matrix
 from .cli_utils import check_file, is_positive_float, list_of_paths, log
 
 # Update here if necessary
-CLUST_ALGOS = {"dbscan": dbscan}
+CLUST_ALGOS = {"clique": clique, "dbscan": dbscan, "dtb": disjoint_taylor_butina}
 
 
 def write_clusters(labels, filepath):
@@ -88,14 +88,9 @@ def get_parser(cmd_args):
         help="Similarity matrix produced by mkcontacts, in h5 format.",
     )
     ap.add_argument(
-        "-f",
-        "--flist",
-        type=list_of_paths,
-        help=(
-            "File listing structures to cluster, one per line. "
-            "Order of structures in file must correspond to order "
-            "or rows/columns in input matrix."
-        ),
+        "method",
+        choices=CLUST_ALGOS.keys(),
+        help="Clustering method to use.",
     )
     ap.add_argument(
         "-o",
@@ -110,24 +105,21 @@ def get_parser(cmd_args):
     )
     ap.add_argument(
         "-pdb",
-        "--write-clusters-as-pdb",
         dest="write_pdb",
-        action="store_true",
+        type=list_of_paths,
+        metavar="LIST_OF_STRUCTURES",
         help=(
             "Write clusters as ensemble of models in PDB format. Clusters "
-            "will be named 'cluster_i.pdb', where i is the cluster index."
+            "will be named 'cluster_i.pdb', where i is the cluster index "
+            "starting from 1. Input is a list of structures in an order "
+            "corresponding to the indices of the similarity matrix. "
+            "For simplicity, use the list of structures used as an input "
+            "to mkcontacts."
         ),
     )
     ap.add_argument(
-        "-m",
-        "--method",
-        choices=CLUST_ALGOS.keys(),
-        type=CLUST_ALGOS.get,
-        default="dbscan",
-        help="Clustering method to use. (default: %(default)s)",
-    )
-    ap.add_argument(
-        "--similarity-threshold",
+        "-s",
+        "--similarity",
         dest="eps",
         type=is_positive_float,
         default=0.6,
@@ -137,7 +129,7 @@ def get_parser(cmd_args):
         ),
     )
     ap.add_argument(
-        "--min-cluster-size",
+        "-minsize," "--min-cluster-size",
         dest="minsize",
         type=lambda x: int(is_positive_float(x)),
         default=4,
@@ -156,13 +148,7 @@ def get_parser(cmd_args):
     else:
         cmd_args = sys.argv[1:]  # remove script name
 
-    args = ap.parse_args(cmd_args)
-
-    # Do validation
-    if args.write_pdb and not args.flist:
-        raise ap.error("-wc/--write-clusters requires -flist")
-
-    return args
+    return ap.parse_args(cmd_args)
 
 
 def main(cmd_args):
@@ -178,24 +164,30 @@ def main(cmd_args):
     _end_time = time.time()
     read_time = _end_time - _start_time1
     log(f"  read similarity matrix in {read_time:4.2f} s")
+    n_ele = len(set(idxs.flatten().tolist()))
+    log(f"  number of unique matrix elements: {n_ele}")
 
     # Do clustering
     _start_time2 = time.time()
-    labels = args.method(idxs, sims, eps=args.eps, minsize=args.minsize)
+    cluster = CLUST_ALGOS.get(args.method)
+    labels = cluster(idxs, sims, eps=args.eps, minsize=args.minsize)
     _end_time = time.time()
     clust_time = _end_time - _start_time2
 
-    n_clusters = len(set(labels.values()))
-    n_clustered = len(labels)
+    n_clu = len(set(labels.values()))
+    n_clu_ele = len(labels)
+    perc = len(labels) * 100.0 / n_ele
     log(f"  clustering completed in {clust_time:6.3f} s")
-    log(f"  clustered {n_clustered} elements in {n_clusters} clusters")
+    log(f"  clustered {n_clu_ele} elements ({perc:4.1f} %) in {n_clu} clusters")
+    _, _counts = zip(*collections.Counter(labels.values()).most_common(5))
+    log(f"  size of largest 5 clusters: {_counts}")
 
     # Write clusters.out
     write_clusters(labels, args.output_file)
 
     # Writing clusters as PDBs
     if args.write_pdb:
-        write_clusters_as_pdb(labels, args.flist)
+        write_clusters_as_pdb(labels, args.write_pdb)
 
     _end_time = time.time()
     cumtime = _end_time - _start_time1
