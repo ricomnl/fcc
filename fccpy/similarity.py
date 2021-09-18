@@ -308,3 +308,45 @@ def write_matrix(idxs, sims, filepath):
         with h5py.File(handle, "w") as h5f:
             h5f.create_dataset("idxs", data=idxs, compression="gzip")
             h5f.create_dataset("sims", data=sims, compression="gzip")
+
+
+# Utility Functions
+def to_square_matrix(idxs, sims, symmetrize=False):
+    """Return a full square matrix from our internal sparse representation.
+
+    Parameters
+    ----------
+    idxs : np.ndarray
+        array of indices to the original setlist, for each pair of elements
+        for which similarities were computed.
+    sims : np.ndarray
+        array of similarities between pairs of elements i and i of shape (n, 2),
+        where n is the number of pairwise combinations of all N elements of the
+        original setlist where s(i, j) or s(j, i) is non-zero.
+
+    symmetrize : bool, optional
+        if True, the resulting matrix is transformed so that m[i, j] = m[j, i]
+        and m[i, j] = max(sims[i, j], sims[i, j]). Default is False.
+
+    Returns
+    -------
+    an NxN matrix M of 16-bit floats where N is the number of unique indices in
+    `idxs` and M[i, j] == sims[i, j].
+    """
+
+    # idxs is not necessarily contiguous, thus the max()
+    # +1 bc idxs is zero based.
+    n = np.unique(idxs).max() + 1
+    mtx = np.zeros((n, n), dtype=np.half)
+
+    ix, jx = idxs[:, 0], idxs[:, 1]
+
+    if symmetrize:  # find maximum value for each pair (s_ij, s_ji)
+        s_ij = s_ji = sims.max(axis=1)
+    else:
+        s_ij, s_ji = sims[:, 0], sims[:, 1]
+
+    mtx[ix, jx] = s_ij
+    mtx[jx, ix] = s_ji
+
+    return mtx
