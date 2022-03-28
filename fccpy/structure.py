@@ -11,13 +11,18 @@ import numpy as np
 Atom = namedtuple("Atom", ["chain", "resid", "icode", "name"])
 
 
-@dataclass(frozen=True)
+# @dataclass(frozen=True)
 class Structure:
-    """Dataclass to store atomic structure data."""
+    """Dataclass to store atomic structure data.
 
     filepath: Path
     atoms: list[Atom]
     xyz: np.ndarray
+    """
+    def __init__(self, filepath, atoms, xyz):
+        self.filepath = filepath
+        self.atoms = atoms
+        self.xyz = xyz
 
     def __repr__(self):
         """Return nice representation of structure for print()."""

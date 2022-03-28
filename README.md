@@ -27,9 +27,9 @@ You can use fccpy as a library or as a set of command-line utilities.
 
 ### As a script
 ```bash
-fccpy mkcontacts file.list
-fccpy mtx file.list -o similarity.h5
-fccpy cluster similarity.h5 -o clusters.out -pdb -f file.list
+fccpy mkcontacts ppi_complexes.txt
+fccpy mtx -m mm ppi_complexes.txt -o similarity.h5
+fccpy cluster similarity.h5 dbscan -o clusters.out
 ```
 
 ### As a library

@@ -19,6 +19,8 @@ def jaccard(set_A, set_B):
     Its value is always bounded between 0 (no elements in common)
     and 1 (all elements shared).
     """
+    if len(set_A | set_B) == 0: 
+        return 0
     return len(set_A & set_B) / len(set_A | set_B)
 
 
@@ -31,7 +33,8 @@ def overlap(set_A, set_B):
     (no elements in common) and 1 (if one of the sets if a subset
     of the other).
     """
-
+    if min(len(set_A), len(set_B)) == 0: 
+        return 0
     return len(set_A & set_B) / min(len(set_A), len(set_B))
 
 
@@ -44,7 +47,8 @@ def fcc(set_A, set_B):
     lengths of A and B aren't necessarily equal. Its value is always
     bounded between 0 (no elements in common) and 1 (all elements shared).
     """
-
+    if len(set_A) == 0: 
+        return 0
     return len(set_A & set_B) / len(set_A)
 
 

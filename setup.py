@@ -18,7 +18,7 @@ setup(
     author_email="j.p.g.l.m.rodrigues@gmail.com",
     url="https://github.com/joaorodrigues/fccpy",
     license=license,
-    python_requires=">=3.9",
+    python_requires=">=3.8",
     install_requires=[
         "numba",
         "numpy",

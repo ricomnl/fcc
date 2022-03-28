@@ -119,8 +119,7 @@ def main(cmd_args):
         unique = True
 
     _start_time1 = time.time()
-
-    clist = [list(read_contacts(f)) for f in args.flist]
+    clist = [list(read_contacts(f.with_suffix(".contacts"))) for f in args.flist]
     _end_time = time.time()
     read_time = _end_time - _start_time1
     log(f"  read {len(clist)} files in {read_time:4.2f} s")
