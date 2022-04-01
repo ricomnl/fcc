@@ -23,6 +23,7 @@ setup(
         "numba",
         "numpy",
         "h5py",
+        "biopython",
     ],
     packages=find_packages(),
     entry_points={

@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from Bio.PDB import PDBParser
 import numpy as np
 
 from fccpy.exceptions import StructureParserException
@@ -57,47 +58,33 @@ def read_pdb(filepath, hetatm=False):
     _Atom = Atom  # bring to local scope as they are called freq.
     _is_hydrogen = is_hydrogen
 
-    try:
-        filepath = Path(filepath)
-    except TypeError:
-        raise IOError("'filepath' must be of type str or pathlib.Path")
-
+    parser = PDBParser(PERMISSIVE=1)
     fp = filepath.resolve(strict=True)
-
-    if hetatm:
-        rectypes = ("ATOM  ", "HETATM")
-    else:
-        rectypes = ("ATOM  ",)
+    structure = parser.get_structure("structure", as_file_handle(fp, "rt"))
+    
+    if len([*structure.get_models()]) > 1:
+        msg = "Multi-model structures are not supported."
+        raise StructureParserException(msg)
 
     atoms = []
     xyz = []
-    with as_file_handle(fp, "rt") as handle:
-        for ln, line in enumerate(handle, start=1):
-            if line.startswith(rectypes):
-                name = line[12:16]
-                element = line[76:78].strip()
-                if element == "H":
-                    continue
-                elif not element and _is_hydrogen(name):
-                    continue
+    for atom_line in structure.get_atoms():
+        name = atom_line.get_name()
+        element = atom_line.element
+        atom_idx = atom_line.get_serial_number()
+        _, _, chain_id, (het, residue_id, icode), _ = atom_line.get_full_id()
+        x, y, z = [*atom_line.get_coord()]
 
-                try:
-                    chain_id = line[21]
-                    resid_num = int(line[22:26])
-                    icode = line[26]
-                    x = float(line[30:38])
-                    y = float(line[38:46])
-                    z = float(line[46:54])
-                except ValueError:
-                    msg = f"Error parsing file '{filepath.name}' on line {ln}"
-                    raise StructureParserException(msg) from None
-                else:
-                    atom = _Atom(chain_id, resid_num, icode, name)
-                    atoms.append(atom)
-                    xyz.append((x, y, z))
+        if element == "H":
+            continue
+        elif not element and _is_hydrogen(name):
+            continue
 
-            elif line.startswith(("MODEL ", "ENDMDL")):
-                msg = "Multi-model structures are not supported."
-                raise StructureParserException(msg)
+        if not hetatm and het.strip() != "":
+            continue
+        
+        atom = _Atom(chain_id, atom_idx, residue_id, icode, name)
+        atoms.append(atom)
+        xyz.append((x, y, z))        
 
     return Structure(filepath, atoms, np.asarray(xyz, dtype=np.float64))

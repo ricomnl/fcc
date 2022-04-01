@@ -15,9 +15,9 @@ from fccpy.utils import as_file_handle
 
 
 # Shared variables for tests
-atom1 = Atom("A", 1, "", "CA")
-atom2 = Atom("A", 1, "", "CB")
-atom3 = Atom("B", 2, "", "CB")
+atom1 = Atom("A", 1, 1, "", "CA")
+atom2 = Atom("A", 2, 1, "", "CB")
+atom3 = Atom("B", 3, 2, "", "CB")
 p1 = (atom1, atom1)
 p2 = (atom1, atom2)
 p3 = (atom1, atom3)
@@ -66,8 +66,8 @@ def test_get_intermolecular_contacts(input_dir):
                     msg = f"Error parsing line {lineno} of file: {ref_fn.name}"
                     raise IOError(msg)
             else:
-                atom_i = Atom(chain_i, int(resid_i), "", name_i)
-                atom_j = Atom(chain_j, int(resid_j), "", name_j)
+                atom_i = Atom(chain_i, 0, int(resid_i), "", name_i)
+                atom_j = Atom(chain_j, 0, int(resid_j), "", name_j)
                 ref_contacts.append((atom_i, atom_j))
 
     # Compare to calculated contacts

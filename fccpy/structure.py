@@ -8,7 +8,7 @@ import numpy as np
 
 
 # Objects to store atomic information
-Atom = namedtuple("Atom", ["chain", "resid", "icode", "name"])
+Atom = namedtuple("Atom", ["chain", "atomid", "resid", "icode", "name"])
 
 
 # @dataclass(frozen=True)
@@ -44,4 +44,4 @@ class Structure:
 # Utility functions
 def atom_to_csv(self):
     """Return Atom as a comma-separated string of its properties."""
-    return f"{self.chain},{self.resid},{self.icode},{self.name}"
+    return f"{self.chain},{self.atomid},{self.resid},{self.icode},{self.name}"

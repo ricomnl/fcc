@@ -124,8 +124,8 @@ def hash_contact(atom_pair, selector1=None, selector2=None):
     Examples
     --------
     >>> from fccpy.contacts import BY_CHAIN
-    >>> a1 = Atom("A", 1, "", "N")
-    >>> a2 = Atom("B", 2, "", "N")
+    >>> a1 = Atom("A", 1, 1, "", "N")
+    >>> a2 = Atom("B", 1, 2, "", "N")
     >>> hash_contact(a1, a2)
     >>> hash_contact(a1, a2, selector1=BY_CHAIN, selector2=BY_CHAIN)
     """
@@ -194,10 +194,12 @@ def read_contacts(filepath):
             try:
                 (
                     chain_a,
+                    atomid_a,
                     resid_a,
                     icode_a,
                     name_a,
                     chain_b,
+                    atomid_b,
                     resid_b,
                     icode_b,
                     name_b,
@@ -206,8 +208,8 @@ def read_contacts(filepath):
                 msg = f"Error parsing contact file {filepath.name} at line {lineno}"
                 raise ValueError(msg)
 
-            atomA = Atom(chain_a, int(resid_a), icode_a, name_a)
-            atomB = Atom(chain_b, int(resid_b), icode_b, name_b)
+            atomA = Atom(chain_a, int(atomid_a), int(resid_a), icode_a, name_a)
+            atomB = Atom(chain_b, int(atomid_b), int(resid_b), icode_b, name_b)
             yield atomA, atomB
 
 
